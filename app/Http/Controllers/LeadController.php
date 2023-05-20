@@ -1,19 +1,17 @@
 <?php
-// app/Http/Controllers/LeadController.php
+
 namespace App\Http\Controllers;
 
-use App\Models\Lead;
-use App\Models\Client;
-use App\Services\LeadScoringService;
-use Illuminate\Http\Request;
+use App\Http\Requests\LeadRequest;
+use App\Repositories\LeadRepository;
 
 class LeadController extends Controller
 {
-    private $leadScoringService;
+    protected $leadRepository;
 
-    public function __construct()
+    public function __construct(LeadRepository $leadRepository)
     {
-        $this->leadScoringService = new LeadScoringService();
+        $this->leadRepository = $leadRepository;
     }
 
     public function create()
@@ -21,76 +19,75 @@ class LeadController extends Controller
         return view('leads.create');
     }
 
-    public function store(Request $request)
+    public function store(LeadRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:clients',
-            'phone' => 'nullable|string|max:20',
-        ]);
+        $createdLead = $this->leadRepository->create($request->validated());
+        if ($createdLead) {
+            return redirect()
+                ->route('lead.show', ['lead' => $createdLead->id])
+                ->with('success', __('Lead has been created'));
 
-        $l = new Lead();
-        $l->name = $data['name'];
-        $l->email = $data['email'];
-        $l->phone = $data['phone'];
-        $l->save();
-
-        $c = new Client();
-        $c->lead_id = $l->id;
-        $c->save();
-
-        // Interact with external lead scoring system
-        $leadScoringService = new LeadScoringService();
-        $score = $leadScoringService->getLeadScore($l);
-        $l->score = $score;
-        $l->save();
-
-        return 'Lead created successfully';
+        } else {
+            return redirect()
+                ->route('lead.create')
+                ->withInput()
+                ->with('error', __('Lead cannot be created'));
+        }
     }
 
     public function show($id)
     {
-        $lead = Lead::find($id);
-        if (!$lead) {
-            return 'Lead not found';
+        $lead = $this->leadRepository->find($id);
+        if (! $lead) {
+            abort(404);
         }
         return view('leads.show', ['lead' => $lead]);
     }
 
     public function edit($id)
     {
-        $lead = Lead::find($id);
-        if (!$lead) {
-            return 'Lead not found';
-        }
+        $lead = $this->leadRepository->find($id);
+        if (! $lead) {
+            abort(404);
+        }        
         return view('leads.edit', ['lead' => $lead]);
     }
 
-    public function update(Request $request, $id)
+    public function update(LeadRequest $request, $id)
     {
-        $lead = Lead::find($id);
-        if (!$lead) {
-            return 'Lead not found';
+        $lead = $this->leadRepository->find($id);
+        if (! $lead) {
+            abort(404);
         }
 
-        $lead->name = $request->get('name');
-        $lead->email = $request->get('email');
-        $lead->phone = $request->get('phone');
-        $lead->save();
+        $updatedLead = $this->leadRepository->update($lead, $request->validated());
+        if ($updatedLead) {
+            return redirect()
+                ->route('lead.show', ['lead' => $updatedLead->id])
+                ->with('success', __('Lead has been updated'));
 
-        // Send lead to scoring system
-        $score = $this->leadScoringService->getLeadScore($lead);
-
-        return 'Lead updated successfully';
+        } else {
+            return redirect()
+                ->route('lead.edit')
+                ->withInput()
+                ->with('error', __('Lead cannot be updated'));
+        }
     }
 
     public function destroy($id)
     {
-        $lead = Lead::find($id);
-        if (!$lead) {
-            return 'Lead not found';
+        $lead = $this->leadRepository->find($id);
+        if (! $lead) {
+            abort(404);
         }
-        $lead->delete();
-        return 'Lead deleted successfully';
+
+        if ($this->leadRepository->delete($lead)) {
+            return response()->noContent();
+
+        } else {
+            return redirect()
+                ->route('lead.show')
+                ->with('error', __('Lead cannot be deleted'));
+        }
     }
 }

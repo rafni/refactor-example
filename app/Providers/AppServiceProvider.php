@@ -11,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(\App\Services\Contracts\LeadScoringContract::class, \App\Services\LeadScoringService::class);
     }
 
     /**

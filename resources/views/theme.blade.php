@@ -11,6 +11,16 @@
     </head>
     <body>
         <div class="container py-5">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    {!! session('success') !!}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    {!! session('error') !!}
+                </div>
+            @endif
             @yield('content')
         </div>
     </body>
