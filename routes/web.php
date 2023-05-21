@@ -18,4 +18,4 @@ Route::post('/', [\App\Http\Controllers\LeadController::class, 'store'])->name('
 Route::get('/{lead}', [\App\Http\Controllers\LeadController::class, 'show'])->whereNumber('lead')->name('lead.show');
 Route::get('/{lead}/edit', [\App\Http\Controllers\LeadController::class, 'edit'])->whereNumber('lead')->name('lead.edit');
 Route::put('/{lead}', [\App\Http\Controllers\LeadController::class, 'update'])->whereNumber('lead')->name('lead.update');
-Route::delete('/{lead}', [\App\Http\Controllers\LeadController::class, 'destoy'])->whereNumber('lead')->name('lead.destoy');
+Route::delete('/{lead}', [\App\Http\Controllers\LeadController::class, 'destroy'])->whereNumber('lead')->name('lead.destoy');
