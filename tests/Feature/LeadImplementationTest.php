@@ -49,13 +49,12 @@ class LeadImplementationTest extends TestCase
         $response->assertSessionDoesntHaveErrors();
     }
 
-    public function test_post_implementation_error(): void
+    public function test_post_implementation_validation_error(): void
     {
-        $response = $this->post('/', [
-            'phone' => fake()->phoneNumber(),
-        ]);
+        $response = $this->post('/', []);
 
         $response->assertSessionHasErrors(['name', 'email']);
+        $response->assertSessionDoesntHaveErrors(['phone']);
     }
 
     public function test_put_implementation(): void
@@ -73,15 +72,14 @@ class LeadImplementationTest extends TestCase
         $response->assertSessionDoesntHaveErrors();
     }
 
-    public function test_put_implementation_error(): void
+    public function test_put_implementation_validation_error(): void
     {
         $lead = Lead::factory()->create();
 
-        $response = $this->put('/' . $lead->id, [
-            'phone' => fake()->phoneNumber(),
-        ]);
+        $response = $this->put('/' . $lead->id, []);
 
         $response->assertSessionHasErrors(['name', 'email']);
+        $response->assertSessionDoesntHaveErrors(['phone']);
     }
 
     public function test_delete_implementation(): void
